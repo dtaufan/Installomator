@@ -406,7 +406,7 @@ displaynotification() { # $1: message $2: title
     navannotifier="/Applications/Utilities/Navan Notifier.app/Contents/MacOS/Navan Notifier"
 
     if [[ "$($navannotifier --version | awk '{print $4}' | cut -d "." -f1)" -ge 3 ]]; then
-        "$navannotifier" -type alert -title "$title" -subtitle "$message"
+        "$navannotifier" -type alert -title "$title" -subtitle "$message" &
     elif [[ "$($swiftdialog --version | cut -d "." -f1)" -ge 2 && "$NOTIFY_DIALOG" -eq 1 ]]; then
         "$swiftdialog" --notification --title "$title" --message "$message"
     elif [[ -x "$manageaction" ]]; then
