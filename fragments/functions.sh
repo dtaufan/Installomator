@@ -65,8 +65,11 @@ displaynotification() { # $1: message $2: title
     manageaction="/Library/Application Support/JAMF/bin/Management Action.app/Contents/MacOS/Management Action"
     hubcli="/usr/local/bin/hubcli"
     swiftdialog="/usr/local/bin/dialog"
+    navannotifier="/Applications/Utilities/Navan Notifier.app/Contents/MacOS/Navan Notifier"
 
-    if [[ "$($swiftdialog --version | cut -d "." -f1)" -ge 2 && "$NOTIFY_DIALOG" -eq 1 ]]; then
+    if [[ "$($navannotifier --version | awk '{print $4}' | cut -d "." -f1)" -ge 3 ]]; then
+        "$navannotifier" -type alert -title "$title" -subtitle "$message"
+    elif [[ "$($swiftdialog --version | cut -d "." -f1)" -ge 2 && "$NOTIFY_DIALOG" -eq 1 ]]; then
         "$swiftdialog" --notification --title "$title" --message "$message"
     elif [[ -x "$manageaction" ]]; then
          "$manageaction" -message "$message" -title "$title" &
