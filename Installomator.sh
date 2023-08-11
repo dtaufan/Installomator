@@ -333,8 +333,8 @@ if [[ $(/usr/bin/arch) == "arm64" ]]; then
         rosetta2=no
     fi
 fi
-VERSION="10.4"
-VERSIONDATE="2023-06-02"
+VERSION="10.5beta"
+VERSIONDATE="2023-08-12"
 
 # MARK: Functions
 
@@ -403,8 +403,11 @@ displaynotification() { # $1: message $2: title
     manageaction="/Library/Application Support/JAMF/bin/Management Action.app/Contents/MacOS/Management Action"
     hubcli="/usr/local/bin/hubcli"
     swiftdialog="/usr/local/bin/dialog"
+    navannotifier="/Applications/Utilities/Navan Notifier.app/Contents/MacOS/Navan Notifier"
 
-    if [[ "$($swiftdialog --version | cut -d "." -f1)" -ge 2 && "$NOTIFY_DIALOG" -eq 1 ]]; then
+    if [[ "$($navannotifier --version | awk '{print $4}' | cut -d "." -f1)" -ge 3 ]]; then
+        "$navannotifier" -type alert -title "$title" -subtitle "$message"
+    elif [[ "$($swiftdialog --version | cut -d "." -f1)" -ge 2 && "$NOTIFY_DIALOG" -eq 1 ]]; then
         "$swiftdialog" --notification --title "$title" --message "$message"
     elif [[ -x "$manageaction" ]]; then
          "$manageaction" -message "$message" -title "$title" &
@@ -2628,6 +2631,17 @@ code42)
     expectedTeamID="9YV9435DHD"
     blockingProcesses=( NONE )
     ;;
+codemeter)
+    name="CodeMeter"
+    type="pkgInDmg"
+    archiveName="CmInstall.pkg"
+    html_page_source="https://www.wibu.com/de/support/anwendersoftware/anwendersoftware.html"
+    macos_value=$(curl -fs $html_page_source | xmllint --html --format - 2>/dev/null | grep -Eo '10.15"> <option value=".*?"' | cut -d '"' -f3)
+    downloadHTML="https://www.wibu.com/de/support/anwendersoftware/anwendersoftware/file/download/$macos_value.html"
+    downloadURL="https://www.wibu.com"$(curl -fs $downloadHTML | xmllint --html --format - 2>/dev/null | grep -Eo 'rel="nofollow" href=".*?"' | cut -d '"' -f4)
+    appNewVersion=$(curl -fs $html_page_source | xmllint --html --format - 2>/dev/null | grep -Eo "option value=\"$macos_value\" style=\"\">Version .*?\"" | sed -E 's/.*Version (.*) \| 2.*/\1/g')
+    expectedTeamID="2SE7W37452"
+    ;;
 coderunner)
     name="CodeRunner"
     type="zip"
@@ -3055,7 +3069,7 @@ everweb)
     name="EverWeb"
     type="dmg"
     downloadURL="https://www.ragesw.com/downloads/everweb/everweb.dmg"
-    appNewVersion=$("curl -s https://www.everwebapp.com/change-log/index.html | grep -oE "[0-9]+\.[0-9]+\.[0-9]+" | head -n 1")
+    appNewVersion=$(curl -fs https://www.everwebapp.com/change-log/index.html | grep -oE "[0-9]+\.[0-9]+\.[0-9]+" | head -n 1)
     expectedTeamID="A95T4TFRZ2"
     ;;
 exelbanstats)
@@ -3452,7 +3466,8 @@ googledrivefilestream)
        packageID="com.google.drivefs.arm64"
     elif [[ $(arch) == "i386" ]]; then
        packageID="com.google.drivefs.x86_64"
-    fi    
+    fi
+    appNewVersion=$(curl -s "https://community.chocolatey.org/packages/googledrive" | xmllint --html --xpath 'substring-after(string(//h1[@class="mb-0 text-center"]), "Google Drive")' - 2> /dev/null)
     downloadURL="https://dl.google.com/drive-file-stream/GoogleDriveFileStream.dmg" # downloadURL="https://dl.google.com/drive-file-stream/GoogleDrive.dmg"
     blockingProcesses=( "Google Docs" "Google Drive" "Google Sheets" "Google Slides" )
     appName="Google Drive.app"
@@ -6040,7 +6055,7 @@ shield)
 shottr)
     name="Shottr"
     type="dmg"
-    appNewVersion=$(curl -s https://shottr.cc/newversion.html | grep "Shottr v" | head -1 | sed 's/.*v\([0-9.]*\).*/\1/')
+    appNewVersion=$(curl -fs "https://shottr.cc/newversion.html" | xmllint --html --xpath 'substring-before(substring-after(string(//a[@id="downloadButton"]/small), "v"), ",")' - 2> /dev/null)
     downloadURL="https://shottr.cc/dl/Shottr-${appNewVersion}.dmg"
     expectedTeamID="2Y683PRQWN"
     ;;
@@ -6527,11 +6542,10 @@ tencentmeeting)
 textexpander)
     name="TextExpander"
     type="dmg"
-    downloadURL="https://cgi.textexpander.com/cgi-bin/redirect.pl?cmd=download&platform=osx"
-    appNewVersion=$( curl -fsIL "https://cgi.textexpander.com/cgi-bin/redirect.pl?cmd=download&platform=osx" | grep -i "^location" | awk '{print $2}' | tail -1 | cut -d "_" -f2 | sed -nre 's/^[^0-9]*(([0-9]+\.)*[0-9]+).*/\1/p' )
+    downloadURL="$(curl -s -L -w "%{url_effective}\n" -o /dev/null "https://rest-prod.tenet.textexpander.com/download?platform=macos")"
+    appNewVersion=$( echo "$downloadURL" | sed -n 's/.*TextExpander_\([0-9.]*\).dmg/\1/p' | grep -oE '[0-9.]+' )
     expectedTeamID="7PKJ6G4DXL"
-    ;;
-textmate)
+    ;;textmate)
     name="TextMate"
     type="tbz"
     #downloadURL="https://api.textmate.org/downloads/release?os=10.12"

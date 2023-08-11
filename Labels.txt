@@ -124,6 +124,7 @@ cluefull
 cocoapods
 coconutbattery
 code42
+codemeter
 coderunner
 colourcontrastanalyser
 connectfonts
@@ -562,7 +563,6 @@ telegram
 tembo
 tencentmeeting
 textexpander
-textmate
 theunarchiver
 things
 thunderbird
