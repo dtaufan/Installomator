@@ -348,7 +348,7 @@ checkRunningProcesses() {
                       sleep 5
                       ;;
                     prompt_user|prompt_user_then_kill)
-                      button=$(displaydialog "Quit “$x” to continue updating? $([[ -n $appNewVersion ]] && echo "Version $appversion is installed, but version $appNewVersion is available.") (Leave this dialogue if you want to activate this update later)." "The application “$x” needs to be updated.")
+                      button=$(displaydialog "Quit “$x” to continue updating? $([[ -n $appNewVersion ]] && echo "Version $appversion is installed, but version $appNewVersion is available. Please wait until the $x reopens following the update.") (Leave this dialogue if you want to activate this update later)." "The application “$x” needs to be updated.")
                       if [[ $button = "Not Now" ]]; then
                         appClosed=0
                         cleanupAndExit 10 "user aborted update" ERROR
